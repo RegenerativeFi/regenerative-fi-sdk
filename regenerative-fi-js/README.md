@@ -1,12 +1,3 @@
-
-
-* [Documentation Pages](https://docs-v3.balancer.fi/developer-reference/sdk/)
-* [Examples](https://github.com/balancer/b-sdk/tree/main/examples)
-
-If you have any questions or need assistance with migrating to the new repository, feel free to reach out via the Dev channel on [Discord](https://discord.balancer.fi/).
-
-Thank you for your understanding, and we hope to see you in our new repository!
-
 # Regenerative Finance Javascript SDK
 
 A JavaScript SDK which provides commonly used utilties for interacting with Regenerative Finance Protocol V2.

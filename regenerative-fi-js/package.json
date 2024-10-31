@@ -1,5 +1,5 @@
 {
-  "name": "@balancer-labs/sdk",
+  "name": "@regenerative/sdk",
   "version": "1.1.6",
   "description": "JavaScript SDK for interacting with the Balancer Protocol V2",
   "license": "GPL-3.0-only",
