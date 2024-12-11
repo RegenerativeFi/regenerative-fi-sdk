@@ -747,6 +747,48 @@ export const BALANCER_NETWORK_CONFIG: Record<Network, BalancerNetworkConfig> = {
     sorConnectingTokens: [],
     sorTriPathMidPoolIds: [],
   },
+  [Network.ALFAJORES]: {
+    chainId: Network.ALFAJORES,
+    addresses: {
+      contracts: {
+        multicall: '0xca11bde05977b3631167028862be2a173976ca11',
+        poolDataQueries: '0x6d3197d069F8F9f1Fe7e23665Bc64CB77ED8b089',
+        veBal: '0x56Fa6A4cBED97E2ed4c4d1d272b8375F46970F92',
+        veBalProxy: '0xE559a94CFA015F6d9BB4C97778222efb42b746B6',
+        vault: '0xeA280B39437a64473a0C77949759E6629eD1Dc73',
+        balancerHelpers: '0xd5B6872D0A47b8F7f4bf115894BF7490F1913830',
+        balancerRelayer: '0x2eDd832CA83781bbf9B7091CCf7a8748B22eC91b',
+        gaugeController: '0x0B58399530a0664C0B1ad7e7d290fFAC854930f8',
+        protocolFeePercentagesProvider:
+          '0xdbd173227b8C07dC46Eb2a38F937B690159Cb40f',
+        weightedPoolFactory: '0x1051Ec689f101D36271325347c21614eDF03e102',
+        composableStablePoolFactory:
+          '0xBFb9F49E468eB87F2FE22F8062C57E34c57A278C',
+      },
+      tokens: {
+        bal: '0x68DF333c5F5835A186AA8bCe4a704432006fDF49', //TODO: Test token, change when REGEN launches
+        wrappedNativeAsset: '0x524d97a67f50f4a062c28c74f60703aec9028a94',
+      },
+    },
+    urls: {
+      subgraph:
+        'https://api.studio.thegraph.com/query/92572/regenerative-pools-subgraph-testnet/version/latest', //TODO: DEV ENDPOINT change when published
+      gaugesSubgraph:
+        'https://api.studio.thegraph.com/query/92572/regenerative-gauges-subgraph-testnet/version/latest',
+      blockNumberSubgraph: '',
+    },
+    thirdParty: {
+      coingecko: {
+        nativeAssetId: 'celo',
+        platformId: 'celo',
+      },
+    },
+    averageBlockTime: 2,
+    pools: {},
+    poolsToIgnore: [],
+    sorConnectingTokens: [],
+    sorTriPathMidPoolIds: [],
+  },
 };
 
 export const networkAddresses = (

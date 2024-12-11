@@ -14,4 +14,6 @@ export enum Network {
   FRAXTAL = 252,
   MODE = 34443,
   CELO = 42220,
+  ALFAJORES = 44787,
+  CELO_ALFAJORES = 44787,
 }
