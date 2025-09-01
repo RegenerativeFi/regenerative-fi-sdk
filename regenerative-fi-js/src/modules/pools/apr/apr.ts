@@ -21,6 +21,13 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { Logger } from '@/lib/utils/logger';
 import { GyroConfigRepository } from '@/modules/data/gyro-config/repository';
 import { POOLS_TO_IGNORE } from '@/lib/constants/poolsToIgnore';
+import axios from 'axios';
+
+// Module-level cache so the opportunities endpoint is fetched only once per process
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let moduleOpportunitiesCache: any[] | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let moduleOpportunitiesFetchInFlight: Promise<any[]> | null = null;
 
 export interface AprBreakdown {
   swapFees: number;
@@ -36,6 +43,10 @@ export interface AprBreakdown {
     total: number;
     breakdown: { [address: string]: number };
   };
+  opportunitiesAprs: {
+    total: number;
+  };
+
   protocolApr: number;
   min: number;
   max: number;
@@ -64,7 +75,6 @@ export class PoolApr {
     private feeDistributor?: BaseFeeDistributor,
     private gyroConfigRepository?: GyroConfigRepository
   ) {}
-
   /**
    * Pool revenue via swap fees.
    * Fees and liquidity are takes from subgraph as USD floats.
@@ -85,6 +95,48 @@ export class PoolApr {
     const feesDailyBsp = 10000 * (dailyFees / parseFloat(totalLiquidity));
 
     return Math.round(365 * feesDailyBsp);
+  }
+
+  /**
+   * Pool revenue from holding yield-bearing wrapped tokens.
+   *
+   * @returns APR [bsp] from tokens contained in the pool
+   */
+  async opportunitiesAprs(
+    pool: Pool
+  ): Promise<AprBreakdown['opportunitiesAprs']> {
+    // Ensure we fetch opportunities only once for the lifetime of the process.
+    if (!moduleOpportunitiesCache) {
+      if (!moduleOpportunitiesFetchInFlight) {
+        moduleOpportunitiesFetchInFlight = (async () => {
+          const response = await axios.get(
+            'https://api.merkl.xyz/v4/opportunities?name=balancer&chainId=42220'
+          );
+          const data = response.data || [];
+          moduleOpportunitiesCache = data;
+          return data;
+        })();
+      }
+
+      try {
+        await moduleOpportunitiesFetchInFlight;
+      } catch (e) {
+        // If the fetch fails, fallback to empty array (do not rethrow to avoid failing APR computation)
+        moduleOpportunitiesCache = moduleOpportunitiesCache || [];
+      } finally {
+        // clear in-flight so future reconstructions (if any) don't hold stale promise
+        moduleOpportunitiesFetchInFlight = null;
+      }
+    }
+
+    const matchOpportunities = (moduleOpportunitiesCache || []).find(
+      (opportunity: any) =>
+        opportunity.identifier.toLowerCase() === pool.address.toLowerCase()
+    );
+
+    return {
+      total: matchOpportunities ? Math.round(matchOpportunities.apr * 100) : 0,
+    };
   }
 
   /**
@@ -437,6 +489,9 @@ export class PoolApr {
           total: 0,
           breakdown: {},
         },
+        opportunitiesAprs: {
+          total: 0,
+        },
         protocolApr: 0,
         min: 0,
         max: 0,
@@ -447,6 +502,7 @@ export class PoolApr {
       tokenAprs,
       minStakingApr,
       maxStakingApr,
+      opportunitiesAprs,
       rewardAprs,
       protocolApr,
     ] = await Promise.all([
@@ -454,6 +510,7 @@ export class PoolApr {
       this.tokenAprs(pool),
       this.stakingApr(pool),
       this.stakingApr(pool, 2.5),
+      this.opportunitiesAprs(pool),
       this.rewardAprs(pool),
       this.protocolApr(pool),
     ]);
@@ -465,14 +522,21 @@ export class PoolApr {
         min: minStakingApr,
         max: maxStakingApr,
       },
+      opportunitiesAprs,
       rewardAprs,
       protocolApr,
-      min: swapFees + tokenAprs.total + rewardAprs.total + minStakingApr,
+      min:
+        swapFees +
+        tokenAprs.total +
+        rewardAprs.total +
+        opportunitiesAprs.total +
+        minStakingApr,
       max:
         swapFees +
         tokenAprs.total +
         rewardAprs.total +
         protocolApr +
+        opportunitiesAprs.total +
         maxStakingApr,
     };
   }
