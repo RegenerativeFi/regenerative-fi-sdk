@@ -110,7 +110,7 @@ export class PoolApr {
       if (!moduleOpportunitiesFetchInFlight) {
         moduleOpportunitiesFetchInFlight = (async () => {
           const response = await axios.get(
-            'https://api.merkl.xyz/v4/opportunities?name=balancer&chainId=42220'
+            'https://api.merkl.xyz/v4/opportunities?name=regenerative&chainId=42220'
           );
           const data = response.data || [];
           moduleOpportunitiesCache = data;
